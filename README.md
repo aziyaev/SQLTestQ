@@ -1,7 +1,7 @@
 # SQLTestQ
 
 **Задание А**
-A. Нужно сделать одну таблицу (Divisions) для хранения иерархической структуры (дерева), например ВУЗ, Факультет, Кафедра (ВУЗ может иметь несколько факультетов, а факультет несколько кафедр). Cостав данных подразделений идентичен: "Наимнование", "Адрес".
+Нужно сделать одну таблицу (Divisions) для хранения иерархической структуры (дерева), например ВУЗ, Факультет, Кафедра (ВУЗ может иметь несколько факультетов, а факультет несколько кафедр). Cостав данных подразделений идентичен: "Наимнование", "Адрес".
 
 Какие поля в таблице создадите?
 
@@ -14,12 +14,12 @@ CREATE TABLE Divisions(
   Address VARCHAR(255)
 );
 ```
-
 Поля:
 - Division_ID - первичный ключ для идентификации подразделения.
 - Parent_ID - внешний ключ, для связывания с подразделений друг с другом.
 - Name - имя подразделения.
 - Address - адрес подразделения
+
 
 **Задание В**
 Таблица клиентов: Customers, поля: CustId, CustName
@@ -30,7 +30,6 @@ CREATE TABLE Divisions(
 | 2     | Компания2    |
 | 3     | Компания3    |
 | 4     | Компания4    |
-
 
 Таблица заказов: Orders поля: OrderId, CustId, OrderDate, Amount
 Содержимое:
@@ -44,7 +43,6 @@ CREATE TABLE Divisions(
 | 6      |3          |     14.03.2021|    2300.00|
 
 **Задача B.1**: Вывести запросом список клиентов (код, наименование), у которых нет ни одного заказа.
-
 **Ответ B.1**
 ```sql
 SELECT c.CustId, c.CustName
@@ -58,7 +56,6 @@ WHERE o.OrderId IS NULL;
 ```sql
 select CustId, count(1) as Orders, sum(Amount) as TotalAmount from Orders where CustId = 15 group by CustId
 ```
-
 **Ответ B.2**
 - Оптимизировать запрос. Заменить некоторые операции на более эффективные, например ```COUNT(*)```
   ```sql
@@ -71,6 +68,25 @@ select CustId, count(1) as Orders, sum(Amount) as TotalAmount from Orders where 
   ```sql
   CREATE INDEX idx_cust_id ON Orders (CustId);
   ```
+
+  
+**Задача B.3**: Вывести запросом три поля - код клиента, его наименование и номер последнего по дате заказа. 
+По возможности, выбор даты сделать без использования вложенного запроса в списке полей, то есть избегая конструкций типа:
+```sql
+select CustId, (select top 1 OrderDate from ...) from...
+```
+**Ответ B.3**
+```sql
+WITH LastOrders AS(
+  SELECT CustId, MAX(OrderDate) AS LastOrderDate
+  FROM Orders
+  GROUP BY CustId
+)
+
+SELECT c.CustId, c.CustName, o.LastOrderDate
+FROM Customers c
+INNER JOIN LastOrders o ON c.CustId = o.CustId;
+```
 
 
 
